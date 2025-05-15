@@ -1,9 +1,11 @@
 "use client";
 
 import styles from "./games.module.css";
+import Link from "next/link";
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Games() {
   const url = process.env.NEXT_PUBLIC_API_URL;
@@ -12,18 +14,60 @@ export default function Games() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  
   const [searchGames, setSearchGames] = useState("");
-  const [searchPlatform, setSearchPlatform] = useState("");
+  const [searchPlatforms, setSearchPlatforms] = useState("");
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const name = searchParams.get("name") || "";
+  const platforms = searchParams.get("platform") || "";
+
+  const updateUrl = (params) => {
+    const newParams = new URLSearchParams();
+
+    if (params.name) {
+      newParams.set("name", params.name);
+    }
+    if (params.platform) {
+      newParams.set("platforms", params.platform);
+    }
+
+    router.push(
+        `/games?${newParams.toString()? `${newParams.toString()}` : ""}`
+
+    )
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    updateUrl({
+      name: searchGames || "",
+      platforms: searchPlatforms || "",
+    });
+}
 
   useEffect(() => {
     const fetchGames = async () => {
       try {
-        setLoading(true);
-        const response = await axios.get(`${url}/games`);
+        let apiUrl = `${url}/game`;
+        const queryParams = new URLSearchParams();
+        if (name) {
+          queryParams.append("name", name);
+        }
+        if (platforms) {
+          queryParams.append("platforms", platforms);
+        }
+        if (queryParams.toString()) {
+          apiUrl += `?${queryParams.toString()}`;
+        }
+        const response = await axios.get(apiUrl);
         setGames(response.data.games);
         setLoading(false);
+        setError(null);
       } catch (error) {
-        console.error("Erro ao buscar os jogos na API");
+        console.error(error, "Erro ao buscar os jogos na API");
         setError(
           "Não foi possível carregar os jogos. Tente novamente mais tarde! #Sorry"
         );
@@ -32,7 +76,9 @@ export default function Games() {
     };
 
     fetchGames();
-  }, []);
+    setSearchGames(name);
+    setSearchPlatforms(platforms);
+  }, [name, platforms]);
 
   return (
     <div className={styles.container}>
@@ -45,7 +91,7 @@ export default function Games() {
         </div>
 
         <div className={styles.searchContainer}>
-          <form className={styles.searchForm}>
+          <form onSubmit={handleSearch} className={styles.searchForm}>
             <div className={styles.searchFields}>
               <div className={styles.searchField}>
                 <label htmlFor="name">Nome do Game:</label>
@@ -64,8 +110,8 @@ export default function Games() {
                 <input
                   type="text"
                   id="platform"
-                  value={searchPlatform}
-                  onChange={(e) => setSearchPlatform(e.target.value)}
+                  value={searchPlatforms}
+                  onChange={(e) => setSearchPlatforms(e.target.value)}
                   placeholder="Ex: PlayStation, PC, Switch..."
                   className={styles.searchInput}
                 />
@@ -101,7 +147,7 @@ export default function Games() {
                 </div>
                 <div className={styles.gameCardBody}>
                   <p>
-                    <strong>Plataforma:</strong> {game.platform}
+                    <strong>Plataforma:</strong> {game.platforms}
                   </p>
                   <p>
                     <strong>ID:</strong> {game.id.substring(0, 8)}...
