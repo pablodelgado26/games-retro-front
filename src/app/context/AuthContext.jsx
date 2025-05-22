@@ -47,8 +47,8 @@ export function AuthProvider({ children }) {
         Cookies.set("token", data.token, { expires: 1, path: "/" });
         setUser(data.userExists);
 
-        // Redirecionar para games
-        router.push("/games");
+        // Redirecionar para dashboard
+        router.push("/dashboard");
         return { success: true };
       } else {
         return {
