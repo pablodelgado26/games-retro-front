@@ -22,7 +22,7 @@ export default function Games() {
   const searchParams = useSearchParams();
 
   const name = searchParams.get("name") || "";
-  const platforms = searchParams.get("platform") || "";
+  const platforms = searchParams.get("platforms") || "";
 
   const updateUrl = (params) => {
     const newParams = new URLSearchParams();
@@ -44,7 +44,7 @@ export default function Games() {
     e.preventDefault();
     updateUrl({
       name: searchGames || "",
-      platforms: searchPlatforms || "",
+      platform: searchPlatforms || "",
     });
 }
 
